@@ -4,14 +4,6 @@ Created on Mon Mar 28 14:10:14 2022
 
 @author: Dominik Dmowski
 
-General rules:
-x,y -------> TOP LEFT FACE CORNER
-x1,y1 -------> BOTTOM RIGHT FACE CORNER
-
-1) X < Xl ----> LEFT
-2) X1 > Xp ----> RIGHT
-3) Y < Yg ----> UP
-4) Y1 >Yd ----> DOWN
 """
 
 import cv2
@@ -25,6 +17,7 @@ eyeCascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml'
 pag.PAUSE = 0.01
 scrx, scry = pag.size()
 pag.moveTo(scrx/2, scry/2)
+clickDetected = False
 
 cap = cv2.VideoCapture(0)
 
@@ -52,11 +45,17 @@ while (True):
 
         for (ex, ey, ew, eh) in eyes:
             cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 0, 255), 1)
+            #print(x, w, ex, ew)
 
-        if len(eyes) == 1:
+        if len(eyes) == 1 and clickDetected == False:
             curx, cury = pag.position()
-            pag.click(curx, cury, )
-            #print('Click!')
+            if(ex >= w/2):
+                pag.click(curx, cury)
+                #print('Left Click!')
+            else:
+                pag.click(curx, cury, button='right')
+                #print('Right Click!')
+            clickDetected = True
         else:
             if (x < int(len(frame[0])/4) and y < int(len(frame)/4)):
                 #print('left and up')
@@ -83,8 +82,8 @@ while (True):
                 #print('down')
                 pag.moveRel(0, 5)
 
-    # checking the camera resolution
-    #print(len(frame),len(frame[0]))
+            clickDetected = False
+
 
     # top line
     cv2.line(frame,
