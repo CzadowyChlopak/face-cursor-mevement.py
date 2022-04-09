@@ -42,10 +42,13 @@ def draw_lines(image):
     
     
 # uploading classifiers
-faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-eyeCascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
+faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades 
+                                    + 'haarcascade_frontalface_default.xml')
+eyeCascade = cv2.CascadeClassifier(cv2.data.haarcascades 
+                                   + 'haarcascade_eye.xml')
 
-#setting refreshing time for cursor movement, read the monitor resolution to put cursor at the center of screen
+#setting refreshing time for cursor movement, 
+#read the monitor resolution to put cursor at the center of screen
 pag.PAUSE = 0.01
 scrx, scry = pag.size()
 pag.moveTo(scrx/2, scry/2)
