@@ -40,98 +40,111 @@ def draw_lines(image):
              (int(len(image[0])-len(image[0])/4),len(image)),
              (255,0,0), 1)
     
+def cursor_click(eyes, eye_x_cord, roi_width):
+    cursor_x, cursor_y = pag.position()
+    if(eye_x_cord >= roi_width/2):
+        pag.click(cursor_x, cursor_y)
+        #print('Left Click!')
+    else:
+        pag.click(cursor_x, cursor_y, button='right')
+        #print('Right Click!')
     
-# uploading classifiers
-faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades 
-                                    + 'haarcascade_frontalface_default.xml')
-eyeCascade = cv2.CascadeClassifier(cv2.data.haarcascades 
-                                   + 'haarcascade_eye.xml')
-
-#setting refreshing time for cursor movement, 
-#read the monitor resolution to put cursor at the center of screen
-pag.PAUSE = 0.01
-scrx, scry = pag.size()
-pag.moveTo(scrx/2, scry/2)
-
-cap = cv2.VideoCapture(0)
-
-while (True):
-    _, frame = cap.read()
-
-    if platform.system() == 'Linux':
-        cv2.flip(frame, 1, frame)
+def cursor_move(image, x_coord, y_coord, width, height, distance=5):
+    if (x_coord < int(len(image[0])/4) 
+            and y_coord < int(len(image)/4)):
+        pag.moveRel(-1*distance, -1*distance)
+        #print('left and up')
         
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    elif (x_coord + width > int(len(image[0])-len(image[0])/4) 
+            and y_coord < int(len(image)/4)):
+        pag.moveRel(distance, -1*distance)  
+        #print('right and up')
+        
+    elif (x_coord < int(len(image[0])/4) 
+            and y_coord + height > int(len(image)-len(image)/4)):
+        pag.moveRel(-1*distance, distance)     
+        #print('left and down')
+        
+    elif (x_coord + width > int(len(image[0])-len(image[0])/4) 
+            and y_coord + height > int(len(image)-len(image)/4)):
+        pag.moveRel(distance, distance)
+        #print('right and down') 
+        
+    elif (x_coord < int(len(image[0])/4)):
+        pag.moveRel(-1*distance, 0)   
+        #print('left')
+        
+    elif (x_coord + width > int(len(image[0])-len(image[0])/4)):
+        pag.moveRel(distance, 0)     
+        #print('right')
+        
+    elif (y_coord < int(len(image)/4)):  
+        pag.moveRel(0, -1*distance)
+        #print('up') 
+        
+    elif (y_coord + height > int(len(image)-len(image)/4)):
+        pag.moveRel(0, distance)
+        #print('down')
 
-    faces = faceCascade.detectMultiScale(gray,
-                                         scaleFactor=1.1,
-                                         minNeighbors=3,
-                                         minSize=(60,60),
-                                         flags=cv2.CASCADE_SCALE_IMAGE)
 
-    for (x, y, w, h) in faces:
-        cv2.rectangle(frame, (x,y), (x+w, y+h), (0,255,0), 1)
-        roi_gray = gray[y:y+h, x:x+w,]
-        roi_color = frame[y:y+h, x:x+w,]
-        eyes = eyeCascade.detectMultiScale(roi_gray,
+        
+if __name__ == '__main__':        
+    # uploading classifiers
+    faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades 
+                                        + 'haarcascade_frontalface_default.xml')
+    eyeCascade = cv2.CascadeClassifier(cv2.data.haarcascades 
+                                       + 'haarcascade_eye.xml')
+    
+    #setting refreshing time for cursor movement, 
+    #read the monitor resolution to put cursor at the center of screen
+    pag.PAUSE = 0.01
+    scrx, scry = pag.size()
+    pag.moveTo(scrx/2, scry/2)
+    
+    cap = cv2.VideoCapture(0)
+    
+    while (True):
+        _, frame = cap.read()
+    
+        if platform.system() == 'Linux':
+            cv2.flip(frame, 1, frame)
+            
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    
+        faces = faceCascade.detectMultiScale(gray,
                                              scaleFactor=1.1,
                                              minNeighbors=3,
-                                             minSize=(20,20),
+                                             minSize=(60,60),
                                              flags=cv2.CASCADE_SCALE_IMAGE)
-
-        for (ex, ey, ew, eh) in eyes:
-            cv2.rectangle(roi_color, 
-                          (ex, ey), 
-                          (ex + ew, ey + eh), 
-                          (0, 0, 255), 1)
-            #print(x, w, ex, ew)
-
-        if len(eyes) == 1:
-            cur_x, cur_y = pag.position()
-            if(ex >= w/2):
-                pag.click(cur_x, cur_y)
-                #print('Left Click!')
+    
+        for (x, y, w, h) in faces:
+            cv2.rectangle(frame, (x,y), (x+w, y+h), (0,255,0), 1)
+            roi_gray = gray[y:y+h, x:x+w,]
+            roi_color = frame[y:y+h, x:x+w,]
+            eyes = eyeCascade.detectMultiScale(roi_gray,
+                                                 scaleFactor=1.1,
+                                                 minNeighbors=3,
+                                                 minSize=(20,20),
+                                                 flags=cv2.CASCADE_SCALE_IMAGE)
+    
+            for (ex, ey, ew, eh) in eyes:
+                cv2.rectangle(roi_color, 
+                              (ex, ey), 
+                              (ex + ew, ey + eh), 
+                              (0, 0, 255), 1)
+                #print(x, w, ex, ew)
+    
+            if len(eyes) == 1:
+                cursor_click(eyes, ex, w)
+                
             else:
-                pag.click(cur_x, cur_y, button='right')
-                #print('Right Click!')
-            
-        else:
-            if (x < int(len(frame[0])/4) and y < int(len(frame)/4)):
-                #print('left and up')
-                pag.moveRel(-5, -5)
-            elif (x+w > int(len(frame[0])-len(frame[0])/4) 
-                  and y < int(len(frame)/4)):
-                #print('right and up')
-                pag.moveRel(5, -5)
-            elif (x < int(len(frame[0])/4) 
-                  and y+h > int(len(frame)-len(frame)/4)):
-                #print('left and down')
-                pag.moveRel(-5, 5)
-            elif (x+w > int(len(frame[0])-len(frame[0])/4) 
-                  and y+h > int(len(frame)-len(frame)/4)):
-                #print('right and down')
-                pag.moveRel(5, 5)
-            elif (x < int(len(frame[0])/4)):
-                #print('left')
-                pag.moveRel(-5, 0)
-            elif (x+w > int(len(frame[0])-len(frame[0])/4)):
-                #print('right')
-                pag.moveRel(5, 0)
-            elif (y < int(len(frame)/4)):
-                #print('up')
-                pag.moveRel(0, -5)
-            elif (y+h > int(len(frame)-len(frame)/4)):
-                #print('down')
-                pag.moveRel(0, 5)
-
-            clickDetected = False
-
-
-    draw_lines(frame)
-
-    cv2.imshow('Captured camera video', frame)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-cap.release()
-cv2.destroyAllWindows()
+                cursor_move(frame, x, y, w, h)
+    
+        draw_lines(frame)
+    
+        cv2.imshow('Captured camera video', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    
+    cap.release()
+    cv2.destroyAllWindows()
